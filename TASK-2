@@ -1,0 +1,99 @@
+from google.colab import files
+uploaded = files.upload()
+import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_excel('Titanic.xlsx')
+
+print("DataFrame info after loading:")
+df.info()
+print("\nColumns in DataFrame:", df.columns.tolist())
+
+# Check for expected columns and process accordingly
+expected_columns_for_analysis = ['Age', 'Embarked', 'Sex', 'Pclass', 'Cabin']
+missing_columns = [col for col in expected_columns_for_analysis if col not in df.columns]
+
+if missing_columns:
+    print(f"\nWarning: The following expected columns are missing from the DataFrame: {', '.join(missing_columns)}.")
+    print("Please ensure you have uploaded a complete Titanic dataset (e.g., 'train.csv' or 'titanic.xlsx' with all common columns).")
+    print("Skipping operations that rely on these missing columns.")
+
+df.head()
+df.describe()
+df.columns
+df.isnull().sum()
+
+# Fill missing Age with median
+if 'Age' in df.columns:
+    df['Age'].fillna(df['Age'].median(), inplace=True)
+else:
+    print("Skipping 'Age' fillna as column is missing.")
+
+# Fill missing Embarked with mode
+if 'Embarked' in df.columns:
+    df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
+else:
+    print("Skipping 'Embarked' fillna as column is missing.")
+
+# Drop Cabin column if too many missing values
+if 'Cabin' in df.columns:
+    df.drop('Cabin', axis=1, inplace=True)
+    print("Dropped 'Cabin' column.")
+else:
+    print("Skipping 'Cabin' drop as column is missing.")
+
+# Survival Distribution Plot
+if 'Survived' in df.columns:
+    df['Survived'].value_counts().plot(kind='bar')
+    plt.xlabel('Survived')
+    plt.ylabel('Count')
+    plt.title('Survival Distribution')
+    plt.show()
+else:
+    print("Skipping 'Survival Distribution' plot as 'Survived' column is missing.")
+
+# Survival Rate by Gender
+if 'Sex' in df.columns and 'Survived' in df.columns:
+    gender_survival = df.groupby('Sex')['Survived'].mean()
+    plt.bar(gender_survival.index, gender_survival.values)
+    plt.xlabel('Gender')
+    plt.ylabel('Survival Rate')
+    plt.title('Survival Rate by Gender')
+    plt.show()
+else:
+    print("Skipping 'Survival Rate by Gender' plot as 'Sex' or 'Survived' column is missing.")
+
+# Survival Rate by Passenger Class
+if 'Pclass' in df.columns and 'Survived' in df.columns:
+    class_survival = df.groupby('Pclass')['Survived'].mean()
+    plt.bar(class_survival.index, class_survival.values)
+    plt.xlabel('Passenger Class')
+    plt.ylabel('Survival Rate')
+    plt.title('Survival Rate by Passenger Class')
+    plt.show()
+else:
+    print("Skipping 'Survival Rate by Passenger Class' plot as 'Pclass' or 'Survived' column is missing.")
+
+# Age Distribution of Passengers
+if 'Age' in df.columns:
+    plt.hist(df['Age'], bins=20)
+    plt.xlabel('Age')
+    plt.ylabel('Frequency')
+    plt.title('Age Distribution of Passengers')
+    plt.show()
+else:
+    print("Skipping 'Age Distribution' plot as 'Age' column is missing.")
+
+# Age vs Survival
+if 'Age' in df.columns and 'Survived' in df.columns:
+    survived = df[df['Survived'] == 1]['Age']
+    not_survived = df[df['Survived'] == 0]['Age']
+
+    plt.hist(survived, bins=20, alpha=0.7, label='Survived')
+    plt.hist(not_survived, bins=20, alpha=0.7, label='Not Survived')
+    plt.xlabel('Age')
+    plt.ylabel('Frequency')
+    plt.title('Age vs Survival')
+    plt.legend()
+    plt.show()
+else:
+    print("Skipping 'Age vs Survival' plot as 'Age' or 'Survived' column is missing.")
